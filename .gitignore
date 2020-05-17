@@ -1,0 +1,7 @@
+node_modules
+./src/server/data/**
+headless-evasion-result.png
+credentials/*
+yarn-error.log
+.idea
+.idea/*
