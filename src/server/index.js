@@ -3,7 +3,7 @@ import { scrape, report } from './scrape-handler';
 import {readRawContent, readReport} from "./data";
 
 const app = express();
-const port = 80;
+const port = 8080;
 
 const TOKEN = '0dacee19-4651-40c9-af34-3cca75cd4442';
 
