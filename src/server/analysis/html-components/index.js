@@ -2,62 +2,19 @@ import JSSoup from 'jssoup';
 import rs from 'text-readability';
 import countWords from 'count-words-occurrence'
 import htt from 'cheerio-html-to-text';
+import {filterContent} from "./utils";
+import {ELEMENTS_TO_CHECK} from './default-elements';
 
-const NODES_TO_CHECK = [
-    {
-        signature: 'a',
-        name: 'links',
-    },
-    {
-        signature: 'h1',
-        name: 'headings 1',
-    },
-    {
-        signature: 'h2',
-        name: 'headings 2',
-    },
-    {
-        signature: 'h3',
-        name: 'headings 3',
-    },
-    {
-        signature: 'h4',
-        name: 'headings 4',
-    },
-    {
-        signature: 'body',
-        name: 'bodies',
-    },
-    {
-        signature: 'p',
-        name: 'paragraphs',
-    },
-    {
-        signature: 'ol',
-        name: 'ordered lists',
-    },
-    {
-        signature: 'ul',
-        name: 'unordered lists',
-    },
-    {
-        signature: 'li',
-        name: 'list items',
-    },
-    {
-        signature: 'img',
-        name: 'images',
-    },
-];
+export const countType = (soup, { tag, name, filter, notReadable }, addContent = false) => {
+    let nodes = soup.findAll(tag);
+    nodes = filter ? nodes.filter(node => node.attrs && node.attrs[filter.key] === filter.value) : nodes;
 
-const countType = (soup, { signature, name }) => {
-    const nodes = soup.findAll(signature);
     let content = '';
     let words = 0;
     let sentences = 0;
 
     nodes.forEach(node => {
-        const nodeText = toHumanText(node.toString() || '');
+        const nodeText = notReadable ? node.toString() : toHumanText(node.toString() || '');
 
         if (nodeText) {
             content += ` ${nodeText}`;
@@ -73,19 +30,19 @@ const countType = (soup, { signature, name }) => {
 
     return {
         name,
-        signature,
+        tag,
         count: nodes.length,
         meanCharactersPerWord: characters > 0 && words > 0 ? Math.round(safeAverage(characters) / safeAverage(words)) : 0,
         meanWords: safeAverage(words),
         meanSentences: safeAverage(sentences),
         frequency,
+        addContent: addContent ? nodes.map(node => node.toString()) : undefined,
     }
 };
 
 export const countDom = (html, content) => {
     const soup = new JSSoup(html);
-
-    const components = NODES_TO_CHECK.map(toCheck => countType(soup, toCheck));
+    const components = ELEMENTS_TO_CHECK.map(toCheck => countType(soup, toCheck));
 
     const wordCount = rs.lexiconCount(content);
     const sentenceCount = rs.sentenceCount(content);
@@ -107,19 +64,7 @@ const wordFrequency = (humanText) => {
         word,
         count: freqObj[word]
     }));
-    frequencies = frequencies.filter(obj =>
-        obj.word.length > 2 &&
-        obj.word.length < 20 &&
-        !obj.word.includes('[') &&
-        !obj.word.includes('http://') &&
-        !obj.word.includes('<') &&
-        !obj.word.includes('>') &&
-        !obj.word.includes(']') &&
-        !obj.word.includes('--') &&
-        !obj.word.includes('*') &&
-        obj.count > 1 &&
-        !(/\d/.test(obj.word))
-    );
+    frequencies = frequencies.filter(obj => filterContent(obj));
     frequencies.sort(compare);
     frequencies = frequencies.splice(0, 50);
     return frequencies

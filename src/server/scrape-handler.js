@@ -1,8 +1,9 @@
 import se_scraper from '../se-scraper';
 import defaultScrapeConfig from './default-scrape-config'
-import {addProcessedContent, addRawData, initReport, setLoading, setScrapedData} from './data';
+import {addProcessedContent, addRawData, initReport, setLoading, readRawContent} from './data';
 import {fetchHtml} from './fetcher';
-import {countDom, toHumanText} from "./analysis/html-components";
+import {countDom, countType, toHumanText} from "./analysis/html-components";
+import JSSoup from "jssoup";
 
 export const scrape = (keyWords, numPages = 1, browserConfig) => {
     let scrape_job = {
@@ -20,21 +21,52 @@ export const scrape = (keyWords, numPages = 1, browserConfig) => {
 export const report = (keyWords, numPages = 1, browserConfig) => {
     const reportId = initReport();
     handleReport(reportId, keyWords, numPages, browserConfig);
-    return reportId;
+    return {id: reportId};
+};
+
+
+export const readElements = (id, elements) => {
+    const raw = readRawContent(id);
+
+    if (!raw) {
+        return {
+            error: 'unable to find content.'
+        }
+    }
+
+    if (raw.loading) {
+        return {loading: true}
+    }
+
+    return raw.data && raw.data.map(rawObj => {
+        const soup = new JSSoup(rawObj.html);
+        const components = {};
+
+        elements.forEach(toCheck => {
+            components[toCheck] = countType(soup, toCheck, true)
+        });
+
+        return {
+            result: rawObj.result,
+            elements: components,
+        }
+    });
+};
+
+const processKeyWord = async (reportId, scrapedData, keyWord) => {
+    const dataForKeyWord = scrapedData.results[keyWord];
+    const promises = [];
+
+    dataForKeyWord['1'].results.forEach(result => promises.push(processResultContent(result)));
+    const processedResultInformation = await Promise.all(promises);
+    await saveReport(keyWord, reportId, processedResultInformation);
 };
 
 const handleReport = async (reportId, keyWords, numPages, browserConfig) => {
     const scrapedData = await scrape(keyWords, numPages, browserConfig);
-    await setScrapedData(reportId, scrapedData);
-
-    await keyWords.forEach(async keyWord => {
-        const dataForKeyWord = scrapedData.results[keyWord];
-        const promises = [];
-
-        dataForKeyWord['1'].results.forEach(result => promises.push(processResultContent(result)));
-        const processedResultInformation = await Promise.all(promises);
-        await saveReport(keyWord, reportId, processedResultInformation);
-    });
+    for (const keyWord of keyWords) {
+        await processKeyWord(reportId, scrapedData, keyWord);
+    }
     setLoading(reportId, false);
 };
 
@@ -58,17 +90,18 @@ const processResultContent = async (result) => {
     const content = toHumanText(html);
     const structure = countDom(html, content);
 
+
     return {
-        info: [{
+        info: {
             result,
             structure,
             analysis: {},
-        }],
-        raw: [{
+        },
+        raw: {
             result,
             html,
             text: content,
-        }],
+        },
     };
 };
 

@@ -5,17 +5,15 @@ const _basedir = './src/server/data/';
 const resolveReportDir = (reportId) => _basedir + reportId;
 const resolveReportPath = (reportId) => resolveReportDir(reportId) + '/report.json';
 const resolveRawPath = (reportId) => resolveReportDir(reportId) + `/raw.json`;
+const resolveLoadingPath = (reportId) => resolveReportDir(reportId) + `/loading.json`;
+
 
 const initState = {
-    loading: true,
-    results: {},
     data: [],
 
 };
 
 const initRawState = {
-    loading: true,
-    results: {},
     data: [],
 };
 
@@ -26,6 +24,7 @@ export const initReport = () => {
     fs.mkdirSync(resolveReportDir(reportId));
     fs.writeFileSync(resolveReportPath(reportId), JSON.stringify(initState));
     fs.writeFileSync(resolveRawPath(reportId), JSON.stringify(initRawState));
+    fs.writeFileSync(resolveLoadingPath(reportId), JSON.stringify({ loading: true }));
     return reportId;
 };
 
@@ -39,31 +38,6 @@ export const readReport = (reportId) => {
     };
 };
 
-export const setScrapedData = async (reportId, results) => {
-    const reportPath = resolveReportPath(reportId);
-    const contentPath = resolveRawPath(reportId);
-
-    if (fs.existsSync(reportPath)) {
-        let json = fs.readFileSync(reportPath);
-        const report = JSON.parse(json);
-        const updatedReport = {
-            ...report,
-            results,
-        };
-        fs.writeFileSync(reportPath, JSON.stringify(updatedReport));
-
-        json = fs.readFileSync(contentPath);
-        const content = JSON.parse(json);
-        const updatedContent = {
-            ...content,
-            results,
-        };
-        fs.writeFileSync(contentPath, JSON.stringify(updatedContent));
-    } else {
-        throw new Error(`reportId: ${reportId} does not exist`);
-    }
-};
-
 export const addProcessedContent = (reportId, info) => {
     const id = uuidv4();
 
@@ -73,12 +47,11 @@ export const addProcessedContent = (reportId, info) => {
             if (err) throw err;
 
             const report = JSON.parse(json);
+            const data = report.data.concat(info);
+
             const updatedReport = {
                 ...report,
-                data: [
-                    ...report.data,
-                    ...info,
-                ]
+                data,
             };
             fs.writeFile(reportPath, JSON.stringify(updatedReport), writeCallback);
         });
@@ -96,12 +69,11 @@ export const addRawData = (reportId, rawData) => {
             if (err) throw err;
 
             const raw = JSON.parse(json);
+            const data = raw.data.concat(rawData);
+
             const updatedRaw = {
                 ...raw,
-                data: [
-                    ...raw.data,
-                    ...rawData,
-                ]
+                data,
             };
             fs.writeFile(contentPath, JSON.stringify(updatedRaw), writeCallback);
         });
@@ -111,36 +83,17 @@ export const addRawData = (reportId, rawData) => {
 };
 
 export const setLoading = (reportId, loading) => {
-    const reportDir = resolveReportDir(reportId);
-    if (fs.existsSync(reportDir)) {
-        const contentPath = resolveRawPath(reportId);
-        const reportPath = resolveReportPath(reportId);
-
-        fs.readFile(contentPath, (err, json) => {
+    const loadingPath = resolveLoadingPath(reportId);
+    if (fs.existsSync(loadingPath)) {
+        fs.readFile(loadingPath, (err) => {
             if (err) throw err;
-
-            console.log('writing to file:', contentPath);
-            const raw = JSON.parse(json);
-            const updatedRaw = {
-                ...raw,
-                loading,
-            };
-            fs.writeFile(contentPath, JSON.stringify(updatedRaw), writeCallback);
-        });
-
-        fs.readFile(reportPath, (err, json) => {
-            if (err) throw err;
-
-            const report = JSON.parse(json);
-            const updatedReport = {
-                ...report,
-                loading,
-            };
-            fs.writeFile(reportPath, JSON.stringify(updatedReport), writeCallback);
+            fs.writeFile(loadingPath, JSON.stringify({ loading }), writeCallback);
         });
     } else {
         throw new Error(`reportId: ${reportId} does not exist`);
     }
 };
 
-export const readRawContent = (reportId) => fs.readFileSync(resolveRawPath(reportId));
+export const readLoading = (reportId) => JSON.parse(fs.readFileSync(resolveLoadingPath(reportId)));
+
+export const readRawContent = (reportId) => JSON.parse(fs.readFileSync(resolveRawPath(reportId)));
