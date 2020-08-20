@@ -4,6 +4,7 @@ var fs = require('fs');
 var os = require("os");
 
 const UserAgent = require('user-agents');
+const plainHtmlScraper = require('./modules/base_scraper.js');
 const google = require('./modules/google.js');
 const bing = require('./modules/bing.js');
 const yandex = require('./modules/yandex.js');
@@ -35,6 +36,7 @@ function read_keywords_from_file(fname) {
 function getScraper(search_engine, args) {
     if (typeof search_engine === 'string') {
         return new {
+            html: plainHtmlScraper.PlainHtmlScraper,
             google: google.GoogleScraper,
             google_news_old: google.GoogleNewsOldScraper,
             google_news: google.GoogleNewsScraper,
@@ -326,6 +328,18 @@ class ScrapeManager {
         }
     }
 
+    async html(url) {
+        const obj = getScraper('html', {
+            config: this.config,
+            context: {},
+            pluggable: this.pluggable,
+        });
+        console.log('doing the thing:', this.page);
+
+        const boundMethod = obj.run.bind(obj);
+        return await this.cluster.execute({ url }, boundMethod);
+    }
+
     /*
      * Scrapes the keywords specified by the config.
      */
@@ -351,7 +365,7 @@ class ScrapeManager {
         }
 
         if (this.pluggable && this.pluggable.start_browser) {
-
+            console.log('pluggable page:', this.page);
             this.scraper = getScraper(this.config.search_engine, {
                 config: this.config,
                 context: this.context,
@@ -393,6 +407,8 @@ class ScrapeManager {
                     context: {},
                     pluggable: this.pluggable,
                 });
+                console.log('doing the thing:', this.page);
+
 
                 var boundMethod = obj.run.bind(obj);
                 execPromises.push(this.cluster.execute({}, boundMethod));

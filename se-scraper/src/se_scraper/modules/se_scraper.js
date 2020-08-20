@@ -56,7 +56,7 @@ module.exports = class Scraper {
             this.page = page;
         }
 
-        await this.page.setViewport({ width: 1920, height: 1040 });
+        await this.page.setViewport({width: 1920, height: 1040});
         let do_continue = true;
 
         if (this.config.scrape_from_file.length <= 0) {
@@ -193,47 +193,49 @@ module.exports = class Scraper {
 
                     if (this.config.html_output) {
 
-                        if (this.config.clean_html_output) {
-                            await this.page.evaluate(() => {
-                                // remove script and style tags
-                                Array.prototype.slice.call(document.getElementsByTagName('script')).forEach(
-                                  function(item) {
+                        await this.page.evaluate(() => {
+                            // remove script and style tags
+                            Array.prototype.slice.call(document.getElementsByTagName('script')).forEach(
+                                function (item) {
                                     item.remove();
                                 });
-                                Array.prototype.slice.call(document.getElementsByTagName('style')).forEach(
-                                  function(item) {
+                            Array.prototype.slice.call(document.getElementsByTagName('style')).forEach(
+                                function (item) {
                                     item.remove();
                                 });
 
-                                // remove all comment nodes
-                                var nodeIterator = document.createNodeIterator(
-                                    document.body,
-                                    NodeFilter.SHOW_COMMENT,    
-                                    { acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } }
-                                );
-                                while(nodeIterator.nextNode()){
-                                    var commentNode = nodeIterator.referenceNode;
-                                    commentNode.remove();
+                            // remove all comment nodes
+                            var nodeIterator = document.createNodeIterator(
+                                document.body,
+                                NodeFilter.SHOW_COMMENT,
+                                {
+                                    acceptNode: function (node) {
+                                        return NodeFilter.FILTER_ACCEPT;
+                                    }
                                 }
-                            });
-                        }
+                            );
+                            while (nodeIterator.nextNode()) {
+                                var commentNode = nodeIterator.referenceNode;
+                                commentNode.remove();
+                            }
+                        });
 
                         if (this.config.clean_data_images) {
                             await this.page.evaluate(() => {
                                 Array.prototype.slice.call(document.getElementsByTagName('img')).forEach(
-                                  function(item) {
-                                    let src = item.getAttribute('src');
-                                    if (src && src.startsWith('data:')) {
-                                        item.setAttribute('src', '');
-                                    }
-                                });
+                                    function (item) {
+                                        let src = item.getAttribute('src');
+                                        if (src && src.startsWith('data:')) {
+                                            item.setAttribute('src', '');
+                                        }
+                                    });
                             });
                         }
 
                         let html_contents = await this.page.content();
                         // https://stackoverflow.com/questions/27841112/how-to-remove-white-space-between-html-tags-using-javascript
                         // TODO: not sure if this is save!
-                        html_contents = html_contents.replace(/>\s+</g,'><');
+                        html_contents = html_contents.replace(/>\s+</g, '><');
                         this.results[keyword][this.page_num].html = html_contents;
                     }
 
@@ -288,7 +290,7 @@ module.exports = class Scraper {
                         // expect that user filled out necessary captcha
                     } else {
                         if (this.config.throw_on_detection === true) {
-                            throw( e );
+                            throw(e);
                         } else {
                             return;
                         }
@@ -296,7 +298,7 @@ module.exports = class Scraper {
                 } else {
                     // some other error, quit scraping process if stuff is broken
                     if (this.config.throw_on_detection === true) {
-                        throw( e );
+                        throw(e);
                     } else {
                         return;
                     }
@@ -425,130 +427,130 @@ module.exports = class Scraper {
 // This is where we'll put the code to get around the tests.
 async function evadeChromeHeadlessDetection(page) {
 
-        // Pass the Webdriver Test.
-        await page.evaluateOnNewDocument(() => {
-            const newProto = navigator.__proto__;
-            delete newProto.webdriver;
-            navigator.__proto__ = newProto;
-        });
+    // Pass the Webdriver Test.
+    await page.evaluateOnNewDocument(() => {
+        const newProto = navigator.__proto__;
+        delete newProto.webdriver;
+        navigator.__proto__ = newProto;
+    });
 
-        // Pass the Chrome Test.
-        await page.evaluateOnNewDocument(() => {
-            // We can mock this in as much depth as we need for the test.
-            const mockObj = {
-                app: {
-                    isInstalled: false,
+    // Pass the Chrome Test.
+    await page.evaluateOnNewDocument(() => {
+        // We can mock this in as much depth as we need for the test.
+        const mockObj = {
+            app: {
+                isInstalled: false,
+            },
+            webstore: {
+                onInstallStageChanged: {},
+                onDownloadProgress: {},
+            },
+            runtime: {
+                PlatformOs: {
+                    MAC: 'mac',
+                    WIN: 'win',
+                    ANDROID: 'android',
+                    CROS: 'cros',
+                    LINUX: 'linux',
+                    OPENBSD: 'openbsd',
                 },
-                webstore: {
-                    onInstallStageChanged: {},
-                    onDownloadProgress: {},
+                PlatformArch: {
+                    ARM: 'arm',
+                    X86_32: 'x86-32',
+                    X86_64: 'x86-64',
                 },
-                runtime: {
-                    PlatformOs: {
-                        MAC: 'mac',
-                        WIN: 'win',
-                        ANDROID: 'android',
-                        CROS: 'cros',
-                        LINUX: 'linux',
-                        OPENBSD: 'openbsd',
-                    },
-                    PlatformArch: {
-                        ARM: 'arm',
-                        X86_32: 'x86-32',
-                        X86_64: 'x86-64',
-                    },
-                    PlatformNaclArch: {
-                        ARM: 'arm',
-                        X86_32: 'x86-32',
-                        X86_64: 'x86-64',
-                    },
-                    RequestUpdateCheckStatus: {
-                        THROTTLED: 'throttled',
-                        NO_UPDATE: 'no_update',
-                        UPDATE_AVAILABLE: 'update_available',
-                    },
-                    OnInstalledReason: {
-                        INSTALL: 'install',
-                        UPDATE: 'update',
-                        CHROME_UPDATE: 'chrome_update',
-                        SHARED_MODULE_UPDATE: 'shared_module_update',
-                    },
-                    OnRestartRequiredReason: {
-                        APP_UPDATE: 'app_update',
-                        OS_UPDATE: 'os_update',
-                        PERIODIC: 'periodic',
-                    },
+                PlatformNaclArch: {
+                    ARM: 'arm',
+                    X86_32: 'x86-32',
+                    X86_64: 'x86-64',
                 },
-            };
+                RequestUpdateCheckStatus: {
+                    THROTTLED: 'throttled',
+                    NO_UPDATE: 'no_update',
+                    UPDATE_AVAILABLE: 'update_available',
+                },
+                OnInstalledReason: {
+                    INSTALL: 'install',
+                    UPDATE: 'update',
+                    CHROME_UPDATE: 'chrome_update',
+                    SHARED_MODULE_UPDATE: 'shared_module_update',
+                },
+                OnRestartRequiredReason: {
+                    APP_UPDATE: 'app_update',
+                    OS_UPDATE: 'os_update',
+                    PERIODIC: 'periodic',
+                },
+            },
+        };
 
-            window.navigator.chrome = mockObj;
-            window.chrome = mockObj;
-        });
+        window.navigator.chrome = mockObj;
+        window.chrome = mockObj;
+    });
 
-        // Pass the Permissions Test.
-        await page.evaluateOnNewDocument(() => {
-            const originalQuery = window.navigator.permissions.query;
-            window.navigator.permissions.__proto__.query = parameters =>
-                parameters.name === 'notifications'
-                    ? Promise.resolve({state: Notification.permission})
-                    : originalQuery(parameters);
+    // Pass the Permissions Test.
+    await page.evaluateOnNewDocument(() => {
+        const originalQuery = window.navigator.permissions.query;
+        window.navigator.permissions.__proto__.query = parameters =>
+            parameters.name === 'notifications'
+                ? Promise.resolve({state: Notification.permission})
+                : originalQuery(parameters);
 
-            // Inspired by: https://github.com/ikarienator/phantomjs_hide_and_seek/blob/master/5.spoofFunctionBind.js
-            const oldCall = Function.prototype.call;
+        // Inspired by: https://github.com/ikarienator/phantomjs_hide_and_seek/blob/master/5.spoofFunctionBind.js
+        const oldCall = Function.prototype.call;
 
-            function call() {
-                return oldCall.apply(this, arguments);
+        function call() {
+            return oldCall.apply(this, arguments);
+        }
+
+        Function.prototype.call = call;
+
+        const nativeToStringFunctionString = Error.toString().replace(/Error/g, "toString");
+        const oldToString = Function.prototype.toString;
+
+        function functionToString() {
+            if (this === window.navigator.permissions.query) {
+                return "function query() { [native code] }";
             }
-
-            Function.prototype.call = call;
-
-            const nativeToStringFunctionString = Error.toString().replace(/Error/g, "toString");
-            const oldToString = Function.prototype.toString;
-
-            function functionToString() {
-                if (this === window.navigator.permissions.query) {
-                    return "function query() { [native code] }";
-                }
-                if (this === functionToString) {
-                    return nativeToStringFunctionString;
-                }
-                return oldCall.call(oldToString, this);
+            if (this === functionToString) {
+                return nativeToStringFunctionString;
             }
+            return oldCall.call(oldToString, this);
+        }
 
-            Function.prototype.toString = functionToString;
-        });
+        Function.prototype.toString = functionToString;
+    });
 
-        // Pass the Plugins Length Test.
-        await page.evaluateOnNewDocument(() => {
-            // Overwrite the `plugins` property to use a custom getter.
-            Object.defineProperty(navigator, 'plugins', {
-                // This just needs to have `length > 0` for the current test,
-                // but we could mock the plugins too if necessary.
-                get: () => [1, 2, 3, 4, 5]
-            });
+    // Pass the Plugins Length Test.
+    await page.evaluateOnNewDocument(() => {
+        // Overwrite the `plugins` property to use a custom getter.
+        Object.defineProperty(navigator, 'plugins', {
+            // This just needs to have `length > 0` for the current test,
+            // but we could mock the plugins too if necessary.
+            get: () => [1, 2, 3, 4, 5]
         });
+    });
 
-        // Pass the Languages Test.
-        await page.evaluateOnNewDocument(() => {
-            // Overwrite the `plugins` property to use a custom getter.
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en']
-            });
+    // Pass the Languages Test.
+    await page.evaluateOnNewDocument(() => {
+        // Overwrite the `plugins` property to use a custom getter.
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en']
         });
+    });
 
-        // Pass the iframe Test
-        await page.evaluateOnNewDocument(() => {
-            Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
-                get: function () {
-                    return window;
-                }
-            });
+    // Pass the iframe Test
+    await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+            get: function () {
+                return window;
+            }
         });
+    });
 
-        // Pass toString test, though it breaks console.debug() from working
-        await page.evaluateOnNewDocument(() => {
-            window.console.debug = () => {
-                return null;
-            };
-        });
+    // Pass toString test, though it breaks console.debug() from working
+    await page.evaluateOnNewDocument(() => {
+        window.console.debug = () => {
+            return null;
+        };
+    });
 }

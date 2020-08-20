@@ -1,5 +1,5 @@
-const se_scraper = require('./src/node_scraper.js');
-var Scraper = require('./src/modules/se_scraper');
+const se_scraper = require('./node_scraper.js');
+var Scraper = require('./modules/se_scraper');
 
 async function scrape(browser_config, scrape_config) {
     // scrape config overwrites the browser_config
@@ -16,8 +16,21 @@ async function scrape(browser_config, scrape_config) {
     return results;
 }
 
+async function html(browser_config, url) {
+    const scraper = new se_scraper.ScrapeManager(browser_config);
+
+    await scraper.start();
+
+    const html = await scraper.html(url);
+
+    await scraper.quit();
+
+    return html;
+}
+
 module.exports = {
     scrape: scrape,
+    html: html,
     ScrapeManager: se_scraper.ScrapeManager,
     Scraper: Scraper,
 };
