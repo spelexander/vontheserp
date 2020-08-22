@@ -53,4 +53,27 @@ export const convertToElementData = (datas) => {
     return elementsWithTagAndResult;
 };
 
+
+const commonIgnoreWords = [
+    'the',
+    'it',
+    'at',
+    'in',
+];
+export const buildSearchTerms = (keyWords) => {
+    const result = [];
+
+    keyWords.forEach(keyWord => {
+        result.push(keyWord);
+        keyWord.split(/\s+/)
+            .filter(word => word.length > 1 && !commonIgnoreWords.includes(word))
+            .forEach(filteredWords => result.push(filteredWords));
+
+    });
+
+    return result;
+};
+
+export const truncate = (str, n) => (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+
 export const getValuesForTag = (tag, values) => values.filter(value => value.tag === tag);

@@ -1,6 +1,6 @@
 import express from 'express';
 import {scrape, report, readElements} from './scrape-handler';
-import {readLoading, readRawContent, readReport} from "./data";
+import {readLoading, readRawContent, readReport} from "./database";
 
 const app = express();
 const port = 8080;
@@ -20,7 +20,7 @@ app.use(express.urlencoded());
 //     next();
 // });
 
-const missingKeywords = (keyWords, res) => missingArg(keyWords, 'keyWords must be provided in request body.', res);
+const missingKeywords = (keywords, res) => missingArg(keywords, 'keywords must be provided in request body.', res);
 
 const missingArg = (arg, message, res) => {
     if (!arg) {
@@ -34,24 +34,26 @@ const missingArg = (arg, message, res) => {
 
 // endpoints
 app.post('/serp', async (req, res) => {
-    const { keyWords, numPages, browserConfig } = req.body;
+    const { keywords, numPages, browserConfig } = req.body;
 
-    if (missingKeywords(keyWords, res)) {
-        return;
+    if (missingKeywords(keywords, res)) {
+        res.status(400);
+        res.send({ error: 'keywords must be provided' });
     }
 
-    const results = await scrape(keyWords, numPages, browserConfig);
+    const results = await scrape(keywords, numPages, browserConfig);
     res.send(results);
 });
 
 app.post('/serp/report', async (req, res) => {
-    const { keyWords, numPages, browserConfig } = req.body;
+    const { keywords, numPages, browserConfig } = req.body;
 
-    if (missingKeywords(keyWords, res)) {
-        return;
+    if (missingKeywords(keywords, res)) {
+        res.status(400);
+        res.send({ error: 'keywords must be provided' });
     }
 
-    const id = report(keyWords, numPages, browserConfig);
+    const id = report(keywords, numPages, browserConfig);
     res.send(id);
 });
 
@@ -64,14 +66,8 @@ app.get('/serp/report/:id', async (req, res) => {
         return;
     }
 
-    console.log('providedId:', id);
-    const loading = readLoading(id);
-    if (loading && loading.loading) {
-        res.status(200).send(loading);
-    }
-
-    console.log('reading report');
-    res.send(readReport(id));
+    const response = await readReport(id);
+    res.send(response);
 });
 
 app.get('/serp/report/:id/raw', async (req, res) => {
@@ -83,26 +79,8 @@ app.get('/serp/report/:id/raw', async (req, res) => {
         return;
     }
 
-    const loading = readLoading(id);
-    if (loading && loading.loading) {
-        res.status(200).send(loading);
-    }
-
-
-    res.send(readRawContent(id));
-});
-
-app.get('/serp/report/:id/loading', async (req, res) => {
-    const id =  req.params && req.params.id;
-
-    if (!id) {
-        res.status(400);
-        res.send({ error: 'path param id must be provided: /serp/report/:id/raw' });
-        return;
-    }
-
-    const loading = readLoading(id);
-    res.send(loading);
+    const response = await readRawContent(id);
+    res.send(response);
 });
 
 app.post('/serp/report/:id/elements', async (req, res) => {
@@ -114,17 +92,13 @@ app.post('/serp/report/:id/elements', async (req, res) => {
         return;
     }
 
-    const loading = readLoading(id);
-    if (loading && loading.loading) {
-        res.status(200).send(loading);
-    }
-
     const { elements } = req.body;
     if (missingArg(elements, 'Elements to scrape must be provided', res)) {
         return;
     }
 
-    res.send(readElements(id, elements));
+    const response = await readElements(id, elements);
+    res.send(response);
 });
 
 app.listen(port, () => console.log(`🚀 vontheserp started on port: ${port}`));

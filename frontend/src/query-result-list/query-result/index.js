@@ -8,6 +8,9 @@ import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import IconButton from "@material-ui/core/IconButton";
 
 const QueryResult = (props) => {
+
+    const displayLink = props.link.split('/')[2];
+
     return <ListItem alignItems="flex-start"
                      selected={props.selected}
                      onClick={() => props.setSelectedResults()}
@@ -19,7 +22,7 @@ const QueryResult = (props) => {
             primary={props.name}
             secondary={
                 <React.Fragment>
-                    {props.link}
+                    {displayLink}
                 </React.Fragment>
             }
         />

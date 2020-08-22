@@ -2,34 +2,42 @@ import React, {useState} from 'react'
 import List from "@material-ui/core/List";
 import Divider from "@material-ui/core/Divider";
 import QueryResult from "./query-result";
-import {useSerpData} from "../store";
+import {useSelectedReport, useSerpData} from "../store";
 
 const QueryResultList = () => {
 
-    const [{pendingState, selectedSites},{setSelectedSites}] = useSerpData();
+    const [state,{setSelectedSites}] = useSerpData();
+    const {results, selectedSites} = useSelectedReport(state);
 
-    const loading = pendingState && pendingState.loading;
-    const results = pendingState && pendingState.results;
+    const loading = results && results.loading;
+    const data = results && results.data;
 
-    const handleSetSelectedResults = (index) => {
-      if (!selectedSites.includes(index)) {
-          setSelectedSites([...selectedSites, index]);
+    const handleSetSelectedResults = (link) => {
+      if (selectedSites[link] === undefined) {
+          setSelectedSites({
+              ...selectedSites,
+              [link]: link,
+          });
       } else {
-          const indexToRemove = selectedSites.indexOf(index);
-          const newSelectedResults = [...selectedSites];
-          newSelectedResults.splice(indexToRemove, 1);
-          setSelectedSites(newSelectedResults);
+          setSelectedSites({
+              ...selectedSites,
+              [link]: undefined,
+          });
       }
     };
 
+    console.log('results state:', state);
+
     return <List component="nav">
-        {results && results.map((result, index) => {
+        {!loading && data && data.map((result, index) => {
+            console.log('selectedSites', selectedSites);
+            console.log('selectedSites[result.link]:', selectedSites[result.link]);
             return <>
                 <QueryResult link={result.link}
                              name={result.title}
                              index={index}
-                             selected={selectedSites.includes(index)}
-                             setSelectedResults={() => handleSetSelectedResults(index)}
+                             selected={selectedSites[result.link] !== undefined}
+                             setSelectedResults={() => handleSetSelectedResults(result.link)}
                 />
                 <Divider variant="inset" component="li"/>
             </>

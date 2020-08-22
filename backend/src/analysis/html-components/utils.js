@@ -11,4 +11,4 @@ export const filterContent = obj =>
     !obj.word.includes('--') &&
     !obj.word.includes('*') &&
     obj.count > 1 &&
-    !(/\d/.test(obj.word))
+    !(/\d/.test(obj.word));

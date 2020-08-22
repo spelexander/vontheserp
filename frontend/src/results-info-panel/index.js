@@ -2,11 +2,7 @@ import React, {useState} from 'react'
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
 import ElementValueList from "./element-value-list";
-import {useSerpData} from "../store";
-import {getValuesForTag} from "../services/utils";
 import {TabWrapper} from "./styled";
 
 function TabPanel(props) {
@@ -25,12 +21,7 @@ function TabPanel(props) {
 }
 
 const ElementsPanel = () => {
-
     const [value, setValue] = useState(0);
-    const [{pendingState, selectedSites},] = useSerpData();
-
-    const tags = pendingState && pendingState.tags;
-    const elements = pendingState && pendingState.elements;
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -39,20 +30,12 @@ const ElementsPanel = () => {
     return <TabWrapper>
         <AppBar position="static">
             <Tabs value={value} onChange={handleChange} aria-label="simple tabs example" variant="scrollable" scrollButtons="auto">
-                {tags && tags.map((tag) =>
-                    <Tab label={tag}/>
-                )}
+                <Tab label='Elements'/>
             </Tabs>
         </AppBar>
-        {tags && tags.map((tag, index) => {
-            const displayData = (elements[tag] || []).filter(elem => !selectedSites || selectedSites.length <= 0 || selectedSites.includes(elem.result.rank - 1));
-
-            return <TabPanel value={value} index={index}>
-                <ElementValueList
-                    tag={tag}
-                    elements={displayData}/>
-            </TabPanel>;
-        })}
+            <TabPanel value={value} index={0}>
+                <ElementValueList/>
+            </TabPanel>
     </TabWrapper>;
 };
 

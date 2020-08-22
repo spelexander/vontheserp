@@ -8,7 +8,7 @@ export const ApplicationResultsRow = styled('div')({
 
 export const ApplicationResultsColumn = styled('div')({
     flex: '35%',
-    height: '84vh',
+    height: '89vh',
     overflow: 'scroll',
 });
 

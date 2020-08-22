@@ -2,7 +2,7 @@ import express from 'express';
 import {scrape, html} from './scrape-handler';
 
 const app = express();
-const port = 8080;
+const port = 8082;
 
 const TOKEN = 'Bearer 0dacee19-4651-40c9-af34-3cca75cd4442';
 

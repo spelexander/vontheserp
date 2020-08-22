@@ -1,6 +1,6 @@
 import {useEffect, useRef} from "react";
 
-export const useSetInterval = (reportId, loading, error, callback, delay) => {
+export const useSetInterval = (loading, error, callback, delay) => {
 
     const savedCallback = useRef();
 
@@ -9,7 +9,7 @@ export const useSetInterval = (reportId, loading, error, callback, delay) => {
     }, [callback]);
 
     useEffect(() => {
-        if (reportId && loading && !error) {
+        if (loading && !error) {
             const tick = () => {
                 savedCallback.current();
             };
@@ -19,5 +19,5 @@ export const useSetInterval = (reportId, loading, error, callback, delay) => {
                 return () => clearInterval(id);
             }
         }
-    }, [reportId, loading, delay]);
+    }, [loading, delay, error]);
 };

@@ -1,35 +1,30 @@
 import fetch from 'node-fetch';
-import AbortController from 'abort-controller';
 
-// const controller = new AbortController();
-// const timeout = setTimeout(
-//     () => {
-//         controller.abort();
-//     },
-//     10000,
-// );
+const scraperClusterUrl = 'http://ec2-52-63-180-96.ap-southeast-2.compute.amazonaws.com:8080';
+// const scraperClusterUrl = 'http://localhost:8082';
 
-export const fetchHtml = (url) => fetch(url, {
+const token = 'Bearer 0dacee19-4651-40c9-af34-3cca75cd4442';
+
+export const fetchHtml = (url) => fetch(`${scraperClusterUrl}/html`, {
     headers: {
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "accept-language": "en-US,en;q=0.9",
-        "cache-control": "no-cache",
-        "pragma": "no-cache",
-        "upgrade-insecure-requests": "1",
-        "user-gent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
+        'Content-Type': 'application/json',
+        'Authorization': token
     },
-    referrerPolicy: "no-referrer-when-downgrade",
-    body: null,
-    method: "GET",
-    mode: "cors",
-    // signal: controller.signal
-})
-    .then(res => res.text());
-    // .finally(() => {
-    //     clearTimeout(timeout);
-    // });
+    body: JSON.stringify({
+        url
+    }),
+    method: 'POST',
+    mode: 'cors',
+}).then(res => res.text());
 
-export const puppetHtml = async (url, page) => {
-    await page.goto(url);
-    return await page.content();
-};
+export const fetchResults = (request) => fetch(`${scraperClusterUrl}/serp`, {
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+    },
+    body: JSON.stringify({
+        ...request
+    }),
+    method: 'POST',
+    mode: 'cors',
+}).then(res => res.json());

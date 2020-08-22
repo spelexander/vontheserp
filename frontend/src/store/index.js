@@ -2,86 +2,125 @@ import {createStore, createHook} from 'react-sweet-state';
 import {createReport} from "../services/create-report";
 import {getElements} from "../services/elements/inex";
 import {convertToElementData, convertToElementRequest, convertToTags, getValuesForTag} from "../services/utils";
+import {getResults} from "../services/results";
 
 const initialState = {
-    reportId: null,
-    loading: false,
-    selectedSites: [],
-    pendingState: {
-        error: null,
-        loading: false,
-        results: null,
-        elements: null,
-        tags: [],
-    }
+    selectedReport: null,
 };
 
 const setSelectedSites = (selectedSites) => ({setState, getState}) => {
-    const state = getState();
-    setState({
-        ...state,
-        selectedSites,
-    });
-};
+    const existingState = getState();
+    const reportId = existingState.selectedReport;
+    const reportExistingState = selectReportFromState(reportId, existingState);
 
-const setLoadingElements = (loading, setState, getState) => {
-    const {pendingState} = getState();
     setState({
-        pendingState: {
-            ...pendingState,
-            loading: true,
+        ...existingState,
+        [reportId]: {
+            ...reportExistingState,
+            selectedSites,
         }
     });
 };
 
 const setError = (error, setState, getState) => {
-    const {pendingState} = getState();
-    setState({
-        pendingState: {
-            ...pendingState,
-            error,
-        }
-    });
+    console.error(error);
 };
 
-const fetchElements = (reportId, requests) => ({setState, getState}) => {
-    const {pendingState} = getState();
+const selectReportFromState = (reportId, state) => {
+    return state[reportId];
+};
+
+const selectReportResultsLoadingFromState = (reportId, state) => {
+    const report = state[reportId];
+    return report && report.results && report.loading;
+};
+
+const selectReportElementsLoadingFromState = (reportId, state) => {
+    const report = state[reportId];
+    return report && report.results && report.loading;
+};
+
+const fetchElements = (requests) => ({setState, getState}) => {
+    const existingState = getState();
+    const reportId = existingState.selectedReport;
     const elementRequests = requests.map(element => convertToElementRequest(element));
 
-    setLoadingElements(true, setState, getState);
+    const setElements = (data) => {
 
-    const setElements = (datas) => {
-        const results = datas.map(data => data.result);
-        const tags = convertToTags(datas);
-        const rawElements = convertToElementData(datas);
+        const reportExistingState = selectReportFromState(reportId, existingState);
+        if (data && data.loading) {
+            return;
+        }
 
-        const elements = {};
+        const tags = convertToTags(data.elements);
+        const rawElements = convertToElementData(data.elements);
+
+        const elementsToSet = {};
         tags.forEach(tag => {
-            elements[tag] = getValuesForTag(tag, rawElements || []);
+            elementsToSet[tag] = getValuesForTag(tag, rawElements || []);
         });
 
         setState({
-            loading: false,
-            pendingState: {
-                ...pendingState,
-                loading: false,
-                elements,
-                tags,
-                results,
+            ...existingState,
+            [reportId]: {
+                ...reportExistingState,
+                elements: {
+                    ...reportExistingState.elements,
+                    loading: false,
+                    data: elementsToSet,
+                    tags,
+                },
             }
         });
     };
 
-   getElements(reportId, elementRequests, setElements, (e) => setError(e, setState, getState));
+    getElements(reportId, elementRequests, setElements, (e) => setError(e, setState, getState));
+};
+
+const fetchResults = () => ({setState, getState}) => {
+    const existingState = getState();
+    const reportId = existingState.selectedReport;
+
+    const setResults = (results) => {
+        const reportExistingState = selectReportFromState(reportId, existingState);
+
+        setState({
+            ...existingState,
+            [reportId]: {
+                ...reportExistingState,
+                results: {
+                    ...reportExistingState.results,
+                    loading: false,
+                    ...results,
+                    data: results.data && Object.values(results.data),
+                },
+            }
+        });
+    };
+
+    getResults(reportId, setResults, (e) => setError(e, setState, getState));
 };
 
 const fetchReport = (keyWords) => ({setState, getState}) => {
-    const { pendingState } = getState();
+    const {currentState} = getState();
 
     const setReportId = (reportId) => setState({
-        reportId,
-        pendingState: {
-            ...pendingState,
+        ...currentState,
+        selectedReport: reportId,
+        [reportId]: {
+            results: {
+                loading: true,
+                data: null,
+                error: null,
+            },
+            elements: {
+                loading: true,
+                data: null,
+                error: null,
+                tags: [],
+            },
+            selectedSites: {},
+            keyWords,
         }
     });
 
@@ -92,6 +131,7 @@ const Store = createStore({
         initialState,
         actions: {
             fetchReport,
+            fetchResults,
             fetchElements,
             setError,
             setSelectedSites,
@@ -101,3 +141,21 @@ const Store = createStore({
 );
 
 export const useSerpData = createHook(Store);
+
+export const useSelectedReport = (state) => {
+    return state[state.selectedReport] || {
+        results: {
+            loading: false,
+            data: null,
+            error: null,
+        },
+        elements: {
+            loading: false,
+            data: null,
+            error: null,
+            tags: [],
+        },
+        selectedSites: {},
+        keyWords: null
+    }
+};

@@ -1,7 +1,7 @@
 export const ELEMENTS_TO_CHECK = [
     {
         tag: 'meta',
-        name: 'meta',
+        name: 'meta description',
         filter: {key: 'name', value: 'description'},
         notReadable: true,
     },

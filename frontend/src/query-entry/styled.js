@@ -10,7 +10,8 @@ export const QueryField = styled(TextField)({
 export const ChipInputStyled = styled(ChipInput)({
     width: '99%',
     marginLeft: '4px',
-    marginRight: '4px'
+    marginRight: '4px',
+    paddingBottom: '2px'
 });
 
 export const QuerySearchButton = styled(Button)({

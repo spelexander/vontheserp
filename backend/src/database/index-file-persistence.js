@@ -10,7 +10,6 @@ const resolveLoadingPath = (reportId) => resolveReportDir(reportId) + `/loading.
 
 const initState = {
     data: [],
-
 };
 
 const initRawState = {

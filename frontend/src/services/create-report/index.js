@@ -1,5 +1,5 @@
 
-export const createReport = async (keyWords, setReportId, setError) => {
+export const createReport = async (keywords, setReportId, setError) => {
     try {
         const response = await fetch('serp/report', {
             method: 'POST',
@@ -8,7 +8,7 @@ export const createReport = async (keyWords, setReportId, setError) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                keyWords,
+                keywords,
                 numPages: 1,
                 browserConfig: {},
             })
