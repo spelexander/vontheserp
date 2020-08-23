@@ -1,7 +1,7 @@
 import Keyv from 'keyv';
 import {v4 as uuidv4} from 'uuid';
 
-const keyv = new Keyv('mongodb://localhost:8081/test');
+const keyv = new Keyv('mongodb://vontheserp:0dacee19-4651-40c9-af34-3cca75cd4442@localhost:27017/vontheserp?authSource=admin');
 
 export const initReport = () => {
     const reportId = uuidv4();
