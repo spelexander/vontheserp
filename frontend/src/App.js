@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './App.css';
 import 'fontsource-roboto';
 import {ApplicationElementsColumn, ApplicationResultsColumn, ApplicationResultsRow, ExportButton} from "./styled";
@@ -10,13 +10,29 @@ import {useSelectedReport, useSerpData} from "./store";
 import {BarLoader, ClimbingBoxLoader} from "react-spinners";
 import {Centered, CenteredWrapper} from "./components/styled";
 import Typography from "@material-ui/core/Typography";
+import {useAuth0} from "@auth0/auth0-react";
+import {Redirect} from 'react-router-dom';
 
 function App() {
+
+    const { isLoading, isAuthenticated } = useAuth0();
 
     const [state,] = useSerpData();
     const {results} = useSelectedReport(state);
     const loading = results && results.loading;
     const {selectedReport} = state;
+
+    if (!isLoading && !isAuthenticated) {
+        return <Redirect path="/" to="/login"/>
+    }
+
+    if (isLoading) {
+        return <CenteredWrapper>
+            <Centered>
+                <BarLoader width={200} loading={true}/>
+            </Centered>
+        </CenteredWrapper>
+    }
 
     return (
         <>

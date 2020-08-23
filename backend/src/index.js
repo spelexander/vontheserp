@@ -1,24 +1,28 @@
 import express from 'express';
 import {scrape, report, readElements} from './scrape-handler';
-import {readLoading, readRawContent, readReport} from "./database";
+import {readRawContent, readReport} from "./database";
 
 const app = express();
 const port = 8080;
 
-const TOKEN = '0dacee19-4651-40c9-af34-3cca75cd4442';
+const WHITELIST = [
+    'spelexander93@gmail.com',
+    'spelexander93+newuser@gmail.com',
+    'benvonthethoff@gmail.com',
+];
 
 // middleware
 app.use(express.json());
 app.use(express.urlencoded());
-// app.use((req, res, next) => {
-//     const token = req.headers && req.headers.token;
-//     if (TOKEN !== token) {
-//         res.status(403);
-//         res.send({ error: 'You are not authorized to use this resource.' });
-//         return;
-//     }
-//     next();
-// });
+app.use((req, res, next) => {
+    const token = req.headers && req.headers.email;
+    if (!WHITELIST.includes(token)) {
+        res.status(403);
+        res.send({ error: 'You are not authorized to use this resource.' });
+        return;
+    }
+    next();
+});
 
 const missingKeywords = (keywords, res) => missingArg(keywords, 'keywords must be provided in request body.', res);
 

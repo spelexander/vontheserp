@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const scraperClusterUrl = 'http://ec2-52-63-180-96.ap-southeast-2.compute.amazonaws.com:8080';
+const scraperClusterUrl = 'https://ec2-13-55-35-246.ap-southeast-2.compute.amazonaws.com:8080';
 // const scraperClusterUrl = 'http://localhost:8082';
 
 const token = 'Bearer 0dacee19-4651-40c9-af34-3cca75cd4442';

@@ -8,7 +8,8 @@ const ElementsLoading = () => {
     return <CenteredWrapper>
         <Centered>
             <Typography variant="body2" component="p">
-                <Timer formatValue={value => `Analysis time: ${value} s`}>
+                <Timer>
+                    <Timer.Minutes formatValue={value => `Analysis time: ${value}.`}/>
                     <Timer.Seconds/>
                 </Timer>
                 <BarLoader loading={true}/>

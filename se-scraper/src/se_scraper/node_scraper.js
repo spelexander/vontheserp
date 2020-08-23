@@ -334,7 +334,6 @@ class ScrapeManager {
             context: {},
             pluggable: this.pluggable,
         });
-        console.log('doing the thing:', this.page);
 
         const boundMethod = obj.run.bind(obj);
         return await this.cluster.execute({ url }, boundMethod);
@@ -365,7 +364,6 @@ class ScrapeManager {
         }
 
         if (this.pluggable && this.pluggable.start_browser) {
-            console.log('pluggable page:', this.page);
             this.scraper = getScraper(this.config.search_engine, {
                 config: this.config,
                 context: this.context,
@@ -407,8 +405,6 @@ class ScrapeManager {
                     context: {},
                     pluggable: this.pluggable,
                 });
-                console.log('doing the thing:', this.page);
-
 
                 var boundMethod = obj.run.bind(obj);
                 execPromises.push(this.cluster.execute({}, boundMethod));

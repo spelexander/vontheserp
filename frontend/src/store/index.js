@@ -40,7 +40,7 @@ const selectReportElementsLoadingFromState = (reportId, state) => {
     return report && report.results && report.loading;
 };
 
-const fetchElements = (requests) => ({setState, getState}) => {
+const fetchElements = (requests, email) => ({setState, getState}) => {
     const existingState = getState();
     const reportId = existingState.selectedReport;
     const elementRequests = requests.map(element => convertToElementRequest(element));
@@ -74,10 +74,10 @@ const fetchElements = (requests) => ({setState, getState}) => {
         });
     };
 
-    getElements(reportId, elementRequests, setElements, (e) => setError(e, setState, getState));
+    getElements(reportId, elementRequests, email, setElements, (e) => setError(e, setState, getState));
 };
 
-const fetchResults = () => ({setState, getState}) => {
+const fetchResults = (email) => ({setState, getState}) => {
     const existingState = getState();
     const reportId = existingState.selectedReport;
 
@@ -98,10 +98,10 @@ const fetchResults = () => ({setState, getState}) => {
         });
     };
 
-    getResults(reportId, setResults, (e) => setError(e, setState, getState));
+    getResults(reportId, email, setResults, (e) => setError(e, setState, getState));
 };
 
-const fetchReport = (keyWords) => ({setState, getState}) => {
+const fetchReport = (keyWords, email) => ({setState, getState}) => {
     const {currentState} = getState();
 
     const setReportId = (reportId) => setState({
@@ -124,7 +124,7 @@ const fetchReport = (keyWords) => ({setState, getState}) => {
         }
     });
 
-    createReport(keyWords, setReportId, (e) => setError(e, setState, getState));
+    createReport(keyWords, email, setReportId, (e) => setError(e, setState, getState));
 };
 
 const Store = createStore({

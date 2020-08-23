@@ -4,6 +4,7 @@ import Paper from "@material-ui/core/Paper/Paper";
 import {useSelectedReport, useSerpData} from "../store";
 import {useSetInterval} from "../services";
 import TuneIcon from '@material-ui/icons/Tune';
+import {useAuth0} from "@auth0/auth0-react";
 
 let lastQuery = null;
 
@@ -12,13 +13,14 @@ const QueryEntry = () => {
     const [query, setQuery] = useState(true);
     const [state, {fetchReport, fetchResults}] = useSerpData();
     const {results} = useSelectedReport(state);
+    const {user} = useAuth0();
 
     const handleTextFieldChange = (e) => setQuery(e.target.value);
     const canRunQuery = query && (lastQuery == null || lastQuery !== query);
 
     const runQuery = () => {
         if (canRunQuery && query) {
-            fetchReport([query]);
+            fetchReport([query], user.email);
             lastQuery = query;
         }
     };
@@ -28,7 +30,7 @@ const QueryEntry = () => {
 
     const pollServer = useCallback(async () => {
         if (loading) {
-            fetchResults();
+            fetchResults(user.email);
         }
     }, [results, loading, error]);
 

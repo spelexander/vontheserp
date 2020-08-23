@@ -26,12 +26,8 @@ const QueryResultList = () => {
       }
     };
 
-    console.log('results state:', state);
-
     return <List component="nav">
         {!loading && data && data.map((result, index) => {
-            console.log('selectedSites', selectedSites);
-            console.log('selectedSites[result.link]:', selectedSites[result.link]);
             return <>
                 <QueryResult link={result.link}
                              name={result.title}

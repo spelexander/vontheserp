@@ -7,6 +7,7 @@ import {useSetInterval} from "../../services";
 import ElementChip from "./element-chip";
 import {buildSearchTerms} from "../../services/utils";
 import ElementsLoading from "./loading";
+import {useAuth0} from "@auth0/auth0-react";
 
 const defaultLabels = [
     'h1',
@@ -21,6 +22,8 @@ const defaultLabels = [
 
 
 const ElementValueList = () => {
+
+    const {user} = useAuth0();
 
     const [displayLabel, setDisplayLabel] = useState('h1');
     const [selectedLabels, setSelectedLabels] = useState(defaultLabels);
@@ -72,7 +75,7 @@ const ElementValueList = () => {
     // polling server for data
     const pollServer = useCallback(async () => {
         if (loading) {
-            fetchElements(selectedLabels);
+            fetchElements(selectedLabels, user.email);
         }
     }, [loading, selectedLabels, fetchElements]);
 
