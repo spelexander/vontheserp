@@ -43,7 +43,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8080",
+  "proxy": "http://ec2-3-25-194-40.ap-southeast-2.compute.amazonaws.com:8080",
   "devDependencies": {
     "@storybook/addon-actions": "^5.3.19",
     "@storybook/addon-links": "^5.3.19",
